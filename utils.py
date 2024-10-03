@@ -13,9 +13,6 @@ def fill_str(name: str) -> str:
         name = ("*" * (int(diff_len / 2))) + name + ("*" * round((diff_len / 2)))
     return name
 
-#l[0][0] = colored(fill_str("kjfkasdkfksld"),"yellow")
-
-
 def format_row_to_print(row: list) -> list:
     return [colored(elem[0],common_vars.colors[elem[1]]) if type(elem) == list else elem for elem in row]
 

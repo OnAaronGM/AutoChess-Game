@@ -4,8 +4,8 @@ import random
 import actions
 import common_vars
 import utils
-from player import Player
-
+from classes import Player, Pokemon
+from database import queries
 ## NOTAS:
 ## CADA POKEMON EN EL TABLERO SE TIENE QUE GUARDAR EN LA MATRIZ ASI: NOMBRE_POKE:(ID USER, HP)
 ## id_user = 0 -> arriba (rojo), id_user = 1 -> abajo (azul)
@@ -33,13 +33,11 @@ def doAction(table: list, player: Player):
             finish_turn = True
 
 def start_game():
-    ## Bucle principal de la partida
-    
+    ## Bucle principal de la partida    
     finish_game = False
     table = utils.create_table() ## Generamos el tablero inicial con los equipos
-    p1 = Player(id=0, team_bench=["Sceptile","Charizard","Blastoise","Pikachu","Totodile","Pidgey"])
-    p2 = Player(id=1, team_bench=["Blastoise","Ratatta","Dialga","Mewtwo","Charmander","Poplio"])
-    #teams = [["Sceptile","Charizard","Blastoise","Pikachu","Totodile","Pidgey"], ["Blastoise","Ratatta","Dialga","Mewtwo","Charmander","Poplio"]]
+    p1 = Player(id=1, team=[Pokemon(*unity) for unity in queries.select_team(1)])
+    p2 = Player(id=2, team=[Pokemon(*unity) for unity in queries.select_team(2)])
     
     utils.print_table(table,p1.team_bench,p2.team_bench)
     
