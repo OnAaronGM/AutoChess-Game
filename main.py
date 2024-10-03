@@ -1,8 +1,5 @@
-import numpy as np
-from termcolor import colored
 import random
 import actions
-import common_vars
 import utils
 from classes import Player, Pokemon
 from database import queries
@@ -21,11 +18,11 @@ def getAction() -> str:
     return action
     
 
-def doAction(table: list, player: Player):
+def doAction(table: list, player: Player) -> bool:
     finish_turn = False
     while not finish_turn:
         action = getAction()
-        if action == "1": ## Si acción mover unidad, preguntar desque que posición y posición final.
+        if action == "1": ## Si acción mover unidad, preguntar desde que posición y posición final.
             finish_turn = actions.move_unidad(table,player)
         elif action == "2":
             finish_turn = actions.sacar_unidad(table, player)

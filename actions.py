@@ -1,6 +1,53 @@
 from utils import fill_str
-import common_vars, utils, conditions
-from player import Player
+import common_vars, conditions
+from classes import Player, Pokemon
+import numpy as np
+
+
+def calculate_dmg(pokemon_attacker_type: str, power_attk: int, type_attk:str, 
+                  pokemon_defender_type: str, power_def: int, type_def: str):
+    # Poder base del ataque. Si el tipo del ataque coincide con el tipo del poke -> *1.5. Comparar eficacias contra el tipo del otro poke
+    power_attk *= common_vars.multiplicadores_df.loc[pokemon_attacker_type][pokemon_defender_type]
+    power_def *= common_vars.multiplicadores_df.loc[pokemon_defender_type][pokemon_attacker_type]
+    
+    if type_attk == pokemon_attacker_type:
+        power_attk = power_attk * 1.5
+    if type_def == pokemon_defender_type:
+        power_def = power_def * 1.5
+        
+    if power_attk > power_def:
+        return "WIN"
+    elif power_attk == power_def:
+        return "Draw"
+    return "LOSE"
+
+def fight(pokemon_attacker: Pokemon, pokemon_defender: Pokemon):
+    # Obtenemos movimiento de cada pokemon por probabilidad en base a sus probs
+    pokemon_attacker_mov = np.random.choice(pokemon_attacker.movs,1,pokemon_attacker.probs)
+    pokemon_defender_mov = np.random.choice(pokemon_defender.movs,1,pokemon_defender.probs)
+    # Obtenemos el index en las listas correspondientes
+    index_attk = pokemon_attacker.movs.index(pokemon_attacker_mov)
+    index_def = pokemon_defender.movs.index(pokemon_defender_mov)
+    # Si alguno de los 2 ataques es SPE, se acaba la pelea sin ganador.
+    if pokemon_attacker.categories[index_attk] == "SPE" or pokemon_defender.categories[index_def] == "SPE":
+        return "DRAW"
+    # Si los 2 tienen prioridad, se calcula daño
+    elif pokemon_attacker.categories[index_attk] == "PRI" and pokemon_defender.categories[index_def] == "PRI":
+        # calcular daño
+        resultado = calculate_dmg(pokemon_attacker.type_poke, pokemon_attacker.powers[index_attk], pokemon_attacker.types[index_attk], 
+                        pokemon_defender.type_poke, pokemon_defender.powers[index_def], pokemon_defender.types[index_def])
+        return resultado
+    # Si atacante tiene prioridad y defensor no, gana atacante
+    elif pokemon_attacker.categories[index_attk] == "PRI" and pokemon_defender.categories[index_def] == "ATK":
+        return "WIN"
+    # Si defensor tiene prioridad y atacante no, pierde atacante
+    elif pokemon_attacker.categories[index_attk] == "ATK" and pokemon_defender.categories[index_def] == "PRI":
+        return "LOSE"
+    else:
+    # Si los 2 tiene ataques normales, se calcula daño
+        resultado = calculate_dmg(pokemon_attacker.type_poke, pokemon_attacker.powers[index_attk], pokemon_attacker.types[index_attk], 
+                        pokemon_defender.type_poke, pokemon_defender.powers[index_def], pokemon_defender.types[index_def])
+        return resultado
 
 def calcular_opciones_mov(table: list, id_user: int, pos_ini):
     dict_poss_moves_from_ini = common_vars.possible_moves[pos_ini]
