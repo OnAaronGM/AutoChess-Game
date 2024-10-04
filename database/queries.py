@@ -6,11 +6,6 @@ mydb = mysql.connector.connect(
   database="autochesspoke"
 )
 
-
-query = """insert into autochesspoke.pokemon (name, type, move1, prob1, move2, prob2, move3, prob3) values 
-    ('pikachu','electrico',(select idmovements from movements where name = 'rayo'),70,
-    (select idmovements from movements where name = 'cola ferrea'),30,null,null);"""
-
 def insert_pokemon():
     pokemon = input("Ingrese nombre del pokemon\n")
     tipo = input("Ingrese tipo del pokemon\n")

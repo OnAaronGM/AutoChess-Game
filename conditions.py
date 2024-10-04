@@ -16,14 +16,25 @@ def position_and_unity_valid(list_units: list):
 
 
 def validate_move(moves: set):
+    valid = False
     print("Indique el lugar de destino de la unidad selecciona")
     s = ""
-    for move in moves:
-        s += move + ", "
+    # Es necesario formatear la lista de movimientos para el usuario.
+    # El formato debe ser -> 1: mov1, 2: mov2, etc
+    for i, move in enumerate(moves):
+        s += str(i+1) + ": " + move + ", "
     print(s[:-2])
-    position_to_move = input().upper()
-    while position_to_move not in moves:
-        print("Movimiento no válido")
-        print("Indique el lugar de destino de la unidad selecciona")
-        position_to_move = input().upper()
-    return common_vars.positions[position_to_move]
+    while not valid:
+        position_to_move = input()
+        try:
+            position_to_move = int(position_to_move)
+            valid = position_to_move in range(1,len(moves)+1)
+            if not valid:
+                print("Movimiento no válido")
+                print("Indique el lugar de destino de la unidad selecciona")
+        except ValueError:
+            print("Movimiento no válido")
+            print("Indique el lugar de destino de la unidad selecciona")
+            continue
+        
+    return [common_vars.positions[elem] for elem in moves[position_to_move - 1].split(" -> ")]

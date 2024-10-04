@@ -18,16 +18,20 @@ def calculate_dmg(pokemon_attacker_type: str, power_attk: int, type_attk:str,
     if power_attk > power_def:
         return "WIN"
     elif power_attk == power_def:
-        return "Draw"
+        return "DRAW"
     return "LOSE"
 
 def fight(pokemon_attacker: Pokemon, pokemon_defender: Pokemon):
+    print(pokemon_attacker)
+    print(pokemon_defender)
     # Obtenemos movimiento de cada pokemon por probabilidad en base a sus probs
     pokemon_attacker_mov = np.random.choice(pokemon_attacker.movs,1,pokemon_attacker.probs)
     pokemon_defender_mov = np.random.choice(pokemon_defender.movs,1,pokemon_defender.probs)
     # Obtenemos el index en las listas correspondientes
     index_attk = pokemon_attacker.movs.index(pokemon_attacker_mov)
     index_def = pokemon_defender.movs.index(pokemon_defender_mov)
+    print("{} usa {}\n".format(pokemon_attacker.name,pokemon_attacker_mov))
+    print("{} usa {}\n".format(pokemon_defender.name,pokemon_defender_mov))
     # Si alguno de los 2 ataques es SPE, se acaba la pelea sin ganador.
     if pokemon_attacker.categories[index_attk] == "SPE" or pokemon_defender.categories[index_def] == "SPE":
         return "DRAW"
@@ -55,7 +59,7 @@ def calcular_opciones_mov(table: list, id_user: int, pos_ini):
     ## Check all the possible moves from ini
     for key, value in dict_poss_moves_from_ini.items():
         ## Si posición nueva está ocupada por unidad rival, combate
-        if type(table[key[0]][key[1]]) == list and table[key[0]][key[1]][1] != id_user:
+        if type(table[key[0]][key[1]]) == Pokemon and table[key[0]][key[1]].id_user != id_user:
             move = list(common_vars.positions.keys())[list(common_vars.positions.values()).index(key)]
             moves.append(move)
         else:
@@ -64,48 +68,80 @@ def calcular_opciones_mov(table: list, id_user: int, pos_ini):
             moves.append(move)
             for moves_2 in value:
                 if type(table[moves_2[0]][moves_2[1]]) == str or \
-                    (type(table[moves_2[0]][moves_2[1]]) == list and table[moves_2[0]][moves_2[1]][1] != id_user):
-                    move = list(common_vars.positions.keys())[list(common_vars.positions.values()).index(moves_2)]
-                    moves.append(move)
+                    (type(table[moves_2[0]][moves_2[1]]) == Pokemon and table[moves_2[0]][moves_2[1]].id_user != id_user):
+                    move_ady = list(common_vars.positions.keys())[list(common_vars.positions.values()).index(moves_2)]
+                    moves.append("{} -> {}".format(move,move_ady))
     return moves
 
-def move_unidad(table: list, player: Player):
+def move_unidad(table: list, player_att: Player, player_def: Player):
     ## PRINTEAR TODOS LAS UNIDADES QUE PUEDE MOVER
-    position_ini_to_move = conditions.position_and_unity_valid(player.unity_on_game)
+    position_ini_to_move = conditions.position_and_unity_valid(player_att.unity_on_game)
     
     ## Obtenemos la unidad a mover
-    unidad = table[position_ini_to_move[0]][position_ini_to_move[1]]
+    pokemon_attacker = table[position_ini_to_move[0]][position_ini_to_move[1]]
     ## CALCULAR TODAS LAS POSIBLES OPCIONES DE MOVIMIENTO PARA EVITAR ERRORES
-    moves = set(calcular_opciones_mov(table, player.id, position_ini_to_move))
-    position_to_move = conditions.validate_move(moves)
-    ## Una vez comprobado la posición final, hay que actualizar la tabla. Eliminar la posición inicial y \
-        # update con nueva posición
-        
-    ### IMPORTANTE TODO: HAY QUE ANALIZAR SI HAY UNA UNIDAD RIVAL EN POSICION FINAL. EN CUYO CASO \
-        # HAY QUE HACER LA LOGICA DE PELEA.
+    moves = calcular_opciones_mov(table, player_att.id, position_ini_to_move)
     
-    table[position_ini_to_move[0]][position_ini_to_move[1]] = common_vars.fill_matrix_elem ## ELIMINAR
-    table[position_to_move[0]][position_to_move[1]] = unidad                               ## UPDATE
-    ## ELIMINAMOS DE LA LISTA DE UNIDADES EN JUEGO DEL USUARIO LA POSICIÓN VIEJA
-    player.unity_on_game.remove(position_ini_to_move)
-    ## UPDATE DE LA LISTA DE UNIDADES EN JUEGO DEL USUARIO CON LA POSICIÓN NUEVA
-    player.unity_on_game.append(position_to_move)
+    # Validate_move tiene que devolver el movimiento elegido por el usuario tras ser validado.
+    # El movimiento es una lista con 1 o 2 elementos.
+        # 1: Indica que solo se mueve una casilla
+        # 2: Indica que se mueve 2 casillas. En este caso, hay que comprobar si el segundo elemento está libre o no.
+            # En caso de estar libre actualizamos lista a esa casilla.
+            # En caso de estar ocupado por rival, movemos a elemento 1, y luego gestionamos la pelea.
+    position_to_move = conditions.validate_move(moves)
+    # En caso de que el último elemento de movimiento sea un string, se hace update
+    if type(table[position_to_move[-1][0]][position_to_move[-1][1]]) == str:
+        table[position_ini_to_move[0]][position_ini_to_move[1]] = common_vars.fill_matrix_elem ## ELIMINAR DE LA TABLA
+        table[position_to_move[-1][0]][position_to_move[-1][1]] = pokemon_attacker  ## UPDATE EN LA TABLA
+        player_att.unity_on_game.remove(position_ini_to_move) # UPDATE DE MIS UNIDADES EN COORDENADAS
+        player_att.unity_on_game.append(position_to_move[-1])
+    # En caso de que el último elemento de movimiento sea un enemigo y tenga 2 movimientos, se hace un update 
+    # hasta el primer movimiento. Esto se hace, ya que en caso de perder la pelea, ya estoy actualizado. Si se 
+    # gana la pelea, entonces se hará un nuevo update.
+    
+    # En caso de haber enemigo, se hace lógica de pelea
+    else:
+        result_fight = fight(pokemon_attacker, table[position_to_move[-1][0]][position_to_move[-1][1]])
+        if result_fight == "WIN":
+            table[position_ini_to_move[0]][position_ini_to_move[1]] = common_vars.fill_matrix_elem ## ELIMINAR
+            pokemon_defender = table[position_to_move[-1][0]][position_to_move[-1][1]]
+            table[position_to_move[-1][0]][position_to_move[-1][1]] = pokemon_attacker  ## UPDATE
+            # UPDATE DE MIS UNIDADES EN COORDENADAS
+            player_att.unity_on_game.remove(position_ini_to_move)
+            player_att.unity_on_game.append(position_to_move[-1])
+            # UPDATE DE UNIDADES RIVALES EN COORDENADAS Y BENCH
+            player_def.unity_on_game.remove(position_to_move[-1])
+            player_def.team_bench.append(pokemon_defender.name)
+            
+        elif result_fight == "LOSE":
+            table[position_ini_to_move[0]][position_ini_to_move[1]] = common_vars.fill_matrix_elem ## ELIMINAR
+            # UPDATE DE MIS UNIDADES EN COORDENADAS Y BENCH
+            player_att.unity_on_game.remove(position_ini_to_move)
+            player_att.team_bench.append(pokemon_attacker.name)
+            
+        elif result_fight == "DRAW" and len(position_to_move) == 2:
+            table[position_ini_to_move[0]][position_ini_to_move[1]] = common_vars.fill_matrix_elem ## ELIMINAR
+            table[position_to_move[0][0]][position_to_move[0][1]] = pokemon_attacker    ## UPDATE
+            # UPDATE DE MIS UNIDADES EN COORDENADAS
+            player_att.unity_on_game.remove(position_ini_to_move)
+            player_att.unity_on_game.append(position_to_move[0])
     return True
 
 
-def sacar_unidad(table: list, player: Player) -> list:
-    position_ini = (0,2) if player.id == 0 else (4,2)
+def sacar_unidad(table: list, player: Player, turno: int) -> list:
+    position_ini = (0,2) if turno == 0 else (4,2)
     ## Si existe una unidad en la posición de origen no se puede sacar otra hasta quedar libre.
     if type(table[position_ini[0]][position_ini[1]]) == list:
         print("Ya existe una unidad en la posición de inicio")
     else:
         print("Seleccione que unidad quiere sacer del banco")
         unidad = input()
-        if unidad not in ["1","2","3","4","5","6"] or int(unidad) not in range(0,len(player.team_bench) + 1):
+        if unidad not in ["1","2","3","4","5","6"] or int(unidad) not in range(1,len(player.team_bench) + 1):
             print("No tiene una unidad en esa posición del banco")
         else:
-            unidad = player.team_bench.pop(int(unidad) - 1)
-            table[position_ini[0]][position_ini[1]] = [fill_str(unidad),player.id,100]
+            player.team_bench.pop(int(unidad) - 1)
+            table[position_ini[0]][position_ini[1]] = player.team[int(unidad) - 1]
+            #table[position_ini[0]][position_ini[1]] = [fill_str(unidad),turno]
             player.unity_on_game.append((position_ini[0],position_ini[1]))
             return True
     return False
