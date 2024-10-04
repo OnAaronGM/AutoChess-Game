@@ -14,5 +14,7 @@ class Player():
     def __init__(self, id, team):
         self.id = id
         self.team = team
-        self.team_bench = [unity.name for unity in self.team]
+        self.team_bench = []
         self.unity_on_game = []
+    def get_team_bench(self):
+        return [unity.name for unity in self.team]

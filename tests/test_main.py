@@ -12,7 +12,11 @@ from database import queries
         
     ]
 )
-def test_sacar_unidad(input_x,input_y, input_z, input_y2, input_z2):
+def test_move_unidad():
+    table = create_table()
+    p1 = Player(id=1, team=[Pokemon(*unity + (1,)) for unity in queries.select_team(1)])
+    p2 = Player(id=2, team=[Pokemon(*unity + (2,)) for unity in queries.select_team(2)])
+    
     assert(sacar_unidad(input_x, input_y, input_z) == True)
     assert(sacar_unidad(input_x, input_y2, input_z2) == True)
     assert(sacar_unidad(input_x, input_y, input_z) == True)

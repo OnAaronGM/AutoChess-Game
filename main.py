@@ -36,7 +36,7 @@ def start_game():
     p1 = Player(id=1, team=[Pokemon(*unity + (1,)) for unity in queries.select_team(1)])
     p2 = Player(id=2, team=[Pokemon(*unity+(2,)) for unity in queries.select_team(2)])
     colors = {p1.id:"red",p2.id:"blue"}
-    utils.print_table(table,p1.team_bench,p2.team_bench,colors)
+    utils.print_table(table,p1.get_team_bench(),p2.get_team_bench(),colors)
     
     random_orden_turno = random.randint(0, 1)
     random_orden_turno = 0
@@ -45,10 +45,10 @@ def start_game():
         if random_orden_turno == 0:
             print("Jugador rojo es su turno \n")
             doAction(table,p1,p2,random_orden_turno)
-            utils.print_table(table,p1.team_bench,p2.team_bench,colors)
+            utils.print_table(table,p1.get_team_bench(),p2.get_team_bench(),colors)
             print("Jugador azul es su turno \n")
             doAction(table,p2,p1,random_orden_turno + 1)
-            utils.print_table(table,p1.team_bench,p2.team_bench,colors)
+            utils.print_table(table,p1.get_team_bench(),p2.get_team_bench(),colors)
         else:
             doAction(table,p2,p1, random_orden_turno)
             doAction(table,p1,p2, random_orden_turno - 1)
