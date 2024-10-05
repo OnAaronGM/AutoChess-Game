@@ -1,8 +1,10 @@
 import random
+import numpy as np
 import actions
-import utils
+import utils, common_vars
 from classes import Player, Pokemon
 from database import queries
+from collections import Counter
 ## NOTAS:
 ## CADA POKEMON EN EL TABLERO SE TIENE QUE GUARDAR EN LA MATRIZ ASI: NOMBRE_POKE:(ID USER, HP)
 ## random_turno = 0 -> arriba (rojo), random_turno = 1 -> abajo (azul)
@@ -29,7 +31,7 @@ def doAction(table: list, player_att: Player, player_def: Player, turno: int) ->
         else:
             finish_turn = True
 
-def start_game():
+def jugar_partida():
     ## Bucle principal de la partida    
     finish_game = False
     table = utils.create_table() ## Generamos el tablero inicial con los equipos
@@ -55,7 +57,46 @@ def start_game():
         #utils.print_table(table,p1.team_bench,p2.team_bench)
         #finish_game = True
         
+def invocar(id_user: int):
+    list_of_rarities_summoned = np.random.choice(common_vars.rarity_pokemon[0],10, p = common_vars.rarity_pokemon[1])
+    counter = Counter(list_of_rarities_summoned)
+    print("ENHORABUENA, HAS OBTENIDO A:\n")
+    for key, value in counter.items():
+        l_poke_key = queries.get_list_poke_by_rarity(key)
+        indexes= np.random.choice(len(l_poke_key),value,[100 / len(l_poke_key)] * len(l_poke_key))
+        for index in indexes:
+            print(l_poke_key[index][1])
+            queries.check_poke_exists_in_inventory(id_user, int(l_poke_key[index][0]))
+    return
+    
+def login():
+    print("Inserte usuario: ")
+    user = input()
+    id_user = queries.get_user(user)
+    while not id_user:
+        print("Usuario incorrecto\n")
+        print("Inserte usuario: ")
+        user = input()
+        id_user = queries.get_user(user)
+    return id_user[0][0]
         
+    
+def main():
+    print("Bienvenido a AutoChessPoke\n".center(70))
+    id_user = login()
+    #print("Inserte password: ")
+    #password = input()
+    
+    print("Indique que quiere hacer:\n".center(70))
+    print("1: Invocar   2: Jugar\n".center(70))
+    accion = input()
+    if accion == "1":
+        invocar(id_user)
+    elif accion == "2":
+        jugar_partida()
+    
+    
 
 if __name__ == "__main__":
-    start_game()
+    main()
+    #start_game()

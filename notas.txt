@@ -1,0 +1,10 @@
+# SUMMONS:
+Existen 3 rarezas: B, A y S
+    Rango B serán aquellos pokes en primera evolución.
+    Rango A serán aquellos pokes en segunda evolución.
+    Rango S serán aquellos pokes en tercera evolución o legendarios.
+    Los rango B tienen un 65%
+    Los rango A tienen un 35%
+    Los rango S tienen un 5%.
+    A la hora de generar las invocaciones serán 10 unidades. Se genera una probabilidad para cada unidad.
+    Posteriormente, se genera aleatoriamente una unidad del tipo {B,A,S}.

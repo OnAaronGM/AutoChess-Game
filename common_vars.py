@@ -1,6 +1,6 @@
 import pandas as pd
+from database import queries
 
-#colors = {0:"red",1:"blue"}
 positions = {"A1":(0,0),"A2":(1,0),"A3":(2,0),"A4":(3,0),"A5":(4,0),
              "B1":(0,1),"B2":(1,1),"B3":(2,1),"B4":(3,1),"B5":(4,1),
              "C1":(0,2),"C2":(1,2),"C3":(2,2),"C4":(3,2),"C5":(4,2),
@@ -60,6 +60,11 @@ multiplicadores = [[0.5,0.5,1,1,0.5,1,0.5,2,2,1,1,1,1,2,1,1,1,1],
 
 multiplicadores_df = pd.DataFrame(multiplicadores,columns=types_poke).set_index([types_poke])
 
-
 fill_matrix_elem = "*" * 21
 bar = '----------------------'
+
+rarity_pokemon = [("B","A","S"),(0.7, 0.25, 0.05)]
+evo_material = {"B":50,"A":100,"S":200}
+
+dict_rarity_pokes = {"B":queries.get_list_poke_by_rarity("B"),
+                     "A":queries.get_list_poke_by_rarity("A"),"S":queries.get_list_poke_by_rarity("S")}
